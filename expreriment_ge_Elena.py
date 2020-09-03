@@ -41,7 +41,7 @@ def test_grad_echo_Elena():
     t = np.linspace(0, tx_time, math.ceil(tx_time/tx_dt)+1) # goes to tx_time us, samples every tx_t us; length of pulse must be adjusted in grad_echo_elena.txt
     
     alpha = 0.46 # alpha=0.46 for Hamming window, alpha=0.5 for Hanning window
-    Nlobes = 1
+    Nlobes = 5
     ampl = 0.125
 
     #sinc pulse with Hamming window
@@ -70,13 +70,16 @@ def test_grad_echo_Elena():
     samples_data = len(data)
     t_rx = np.linspace(0, rx_dt*samples_data, samples_data) #us
 
-    plt.plot(t_rx,np.real(data_mV))
-    plt.plot(t_rx,np.imag(data_mV))
-    plt.plot(t_rx,np.abs(data_mV))
-    plt.legend(['real', 'imag', 'abs'])
-    plt.xlabel('time (us)')
-    plt.ylabel('signal received (mV)')
-    plt.title('sampled data = %i' %samples_data)
+    plt.plot(t,tx_x)
+    plt.title('sampled data = %i' % samples_data)
+
+    # plt.plot(t_rx,np.real(data_mV))
+    # plt.plot(t_rx,np.imag(data_mV))
+    # plt.plot(t_rx,np.abs(data_mV))
+    # plt.legend(['real', 'imag', 'abs'])
+    # plt.xlabel('time (us)')
+    # plt.ylabel('signal received (mV)')
+    # plt.title('sampled data = %i' %samples_data)
     plt.show()
 
 if __name__ == "__main__":

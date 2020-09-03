@@ -231,7 +231,11 @@ def test_grad_echo():
     data = exp.run()
 
     plt.plot(np.real(data))
-    plt.plot(np.imag(data))    
+    plt.plot(np.imag(data))
+    plt.plot(np.abs(data))
+    plt.legend(['real', 'imag', 'abs'])
+    # plt.xlabel('time (us)')
+    plt.ylabel('signal received (mV)')
     plt.show()
         
 if __name__ == "__main__":
