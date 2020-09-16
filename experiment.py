@@ -92,6 +92,38 @@ class Experiment:
 
         return len(self.grad_offsets) - 1
 
+    # Initialize the DAC card as shown in test_acquire.py where it says 'LD, but needed to initialise the DACs somehow'
+    def initialize_DAC(self):
+        raw_grad_data = bytearray(4096 * 2)
+        val = 0x00100000
+        val2 = 0x00200002
+
+        raw_grad_data[0] = val & 0xff
+        raw_grad_data[1] = (val >> 8) & 0xff
+        raw_grad_data[2] = (val >> 16) & 0xff
+        raw_grad_data[3] = (val >> 24) & 0xff
+
+        raw_grad_data[4] = val2 & 0xff
+        raw_grad_data[5] = (val2 >> 8) & 0xff
+        raw_grad_data[6] = (val2 >> 16) & 0xff
+        raw_grad_data[7] = (val2 >> 24) & 0xff
+
+        # number of samples acquired will determine how long the actual sequence runs for, both RF and gradients,
+        # since the processor is put into the reset state by the server once acquisition is complete
+        self.instruction_file = "ocra_lib/se_default_vn.txt"
+        self.compile_instructions()
+        packet = sc.construct_packet({'acq': 50,
+                               'grad_mem_x': raw_grad_data,
+                               'grad_mem_y': raw_grad_data,
+                               'grad_mem_z': raw_grad_data,
+                               'seq_data': self.instructions,
+                               })
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip_address, port))
+
+        reply = sc.send_packet(packet, s)
+
     def compile_tx_data(self):
         """ go through the TX data and prepare binary array to send to the server """
         self.tx_bytes = bytearray(self.tx_data.size * 4)

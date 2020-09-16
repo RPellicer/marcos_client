@@ -25,7 +25,7 @@ class AcquireTest(unittest.TestCase):
 
     def test_acquire(self):
         # Top-level parameters
-        lo_freq = 2 # LO frequency, MHz
+        lo_freq = 5 # LO frequency, MHz
         samples = 800 # number of samples to acquire
         divisor = 2 # TX sampling rate divisor, i.e. 3 means TX samples are output at 1/3 of the rate of the FPGA clock. Minimum value is 2
         sampling_divisor = 123 # as above, I think (+/- 1 error); 123 means it'll be around 1 sample per us
@@ -92,7 +92,7 @@ class AcquireTest(unittest.TestCase):
         data = np.frombuffer(acquired_data_raw, np.complex64)
         # data = np.frombuffer(acquired_data_raw, np.uint64) # ONLY FOR DEBUGGING THE FIFO COUNT
 
-        if False:
+        if True:
                 # mkr = '-'
                 mkr = '.'
                 fig, axs = plt.subplots(2,1)

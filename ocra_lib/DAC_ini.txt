@@ -29,22 +29,8 @@ NOP                                 // A[1B] UNUSED
 NOP                                 // A[1C] UNUSED
 TXOFFSET 0 							// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
 GRADOFFSET 0 						// A[1E] GRADOFFSET
-PR 7, 10  //grad-Update grad offset // A[21]
-PR 3, 40		// wait
-PR 11, 10      // Enable Tx         // A[1F]
-PR 5, 10		// RF 90        	// A[20] PR R[5] (issue CMD5) and unblank for 120 us
-PR 7, 201      // grad              // A[21]
-PR 3, 10		// wait				    // A[22] PR R[3] (issue CMD3) and last for 4855 us (5000-145)PR 11, 200
-TXOFFSET 102 						// A[23] TXOFFSET 0: RF 90x+
-PR 11, 10      // Enable Tx         // A[24]
-PR 5, 10		// RF 180			// A[25] PR R[5] (issue CMD5) and unblank for 180 us
-GRADOFFSET 100						// A[26] GRADOFFSET
-PR 3, 10      // wait               // A[27]
-//PR 8, 412	// grad&read		    // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-TXOFFSET 1050						// A[23] TXOFFSET 0: RF 90x+
-PR 10, 412	// grad&read		    // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-PR 3, 100000     // wait           // A[29]
-PR 4, 0   //read      		        // A[2A] stop	(TX and grad)
-DEC 2 								// A[2B] DEC R[2]
-JNZ 2, 0x1D 						// A[2C] JNZ R[2] => `PC=0x1D
-HALT 								// A[2D] HALT
+PR 7, 10  //grad-Update grad offset // A[1F]
+PR 4, 1000000   //read      	    // A[20] stop	(TX and grad)
+DEC 2 								// A[21] DEC R[2]
+JNZ 2, 0x1D 						// A[22] JNZ R[2] => `PC=0x1D
+HALT 								// A[23] HALT
