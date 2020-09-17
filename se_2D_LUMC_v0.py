@@ -1,6 +1,6 @@
 # This script acquires a 2D spin echo sequence 
 # Basic, and not real-time.
-# Assembler code does not loop but phython sends the .txt for each time
+# Assembler code does not loop but python sends the .txt for each time
 # (2D phantom required, there is no slice selection on the 3rd dimension)
 
 
@@ -77,8 +77,7 @@ def se_2D_v0_RP():
     tx90 = np.concatenate((tx90_clean, np.zeros(1100 - np.size(tx90_clean))))
     tx180 = np.concatenate((tx180, np.zeros(2200 - np.size(tx180) - np.size(tx90))))
 
-    # For testing ONLY: echo centering
-    acq_shift = 0
+    # For testing ONLY: shot rf to mimic echo for centering the acquisition window
     tx90_echo_cent = np.hstack((tx90_clean, np.zeros(100)))
 
     ##### Gradients #####
