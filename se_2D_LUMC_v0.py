@@ -97,9 +97,9 @@ def se_2D_v0_RP():
                          np.linspace(1, 0, grad_ramp_samp_nr)])  # Ramp down
     grad_fe = np.hstack([grad_fe, np.zeros(1400 - np.size(grad_fe))])
     # Correct for DC offset and scaling
-    scale_G_x = 0.3
-    scale_G_y = 0.3
-    scale_G_z = 0.3
+    scale_G_x = 0.32
+    scale_G_y = 0.32
+    scale_G_z = 0.32
     offset_G_x = 0.05
     offset_G_y = 0.05
     offset_G_z = 0.0

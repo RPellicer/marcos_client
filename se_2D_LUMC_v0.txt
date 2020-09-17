@@ -42,7 +42,7 @@ PR 3, 10      // wait               // A[27]
 PR 8, 13500  //13050	// grad&read		    // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
 //TXOFFSET 1050						// A[23] TXOFFSET 0: RF 90x+
 //PR 10, 13050	// grad&read		    // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-PR 3, 100000     // wait           // A[29]
+PR 3, 1000000     // wait           // A[29]
 PR 4, 50000   //read      		        // A[2A] stop	(TX and grad)
 DEC 2 								// A[2B] DEC R[2]
 JNZ 2, 0x1D 						// A[2C] JNZ R[2] => `PC=0x1D
