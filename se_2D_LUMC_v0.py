@@ -44,20 +44,32 @@ def se_2D_v0_RP():
     tx_dt = 0.1  # RF TX sampling dt in microseconds; is rounded to a multiple of clocks (122.88 MHz)
     rx_dt = 50  # RF RX sampling dt
 
-    sample_nr_2_STOP_Seq = 256 + 1000  # Nr. of samples to acquire TO STOP the acquisition
-
     ##### Times have to match with "<instruction_file>.txt" ####
     T_tx_Rf = 100       # RF pulse length (us)
     T_G_ramp_dur = 250  # Gradient ramp time
     BW = 20000          # Rf Rx Bandwidth
 
+    sample_nr_2_STOP_Seq = 256 + 1000  # Nr. of samples to acquire TO STOP the acquisition
+
+    # Correct for DC offset and scaling
+    scale_G_x = 0.32
+    scale_G_y = 0.32
+    scale_G_z = 0.32
+    offset_G_x = 0.0
+    offset_G_y = 0.0
+    offset_G_z = 0.0
+
+    # Rf amplitude
+    Rf_ampl = 0.3#0.07125  # for Tom
+
+    # Centering the echo
+    echo_delay = 4550  # us; correction for receiver delay
+
     rx_dt_corr = rx_dt * 0.5  # correction factor to have correct Rx sampling time till the bug is fixed
-    T_G_pe_dur = ((1 / (
-                BW / sample_nr_echo)) / 2) * 1e6 + T_G_ramp_dur  # Total phase encoding gradient ON time length (us)
-    T_G_pre_fe_dur = ((1 / (
-                BW / sample_nr_echo)) / 2) * 1e6 + 2 * T_G_ramp_dur  # Total freq. encoding REWINDER ON time length (us)
-    T_G_fe_dur = 2 * (((1 / (BW / sample_nr_echo)) / 2) * 1e6) + (
-                2 * T_G_ramp_dur)  # Total Frequency encoding gradient ON time length (us)
+    t_G_ref_Area = ((1 / ( BW / sample_nr_echo)) / 2) * 1e6  # The time needed to do half the encoding (square pulse)
+    T_G_pe_dur = t_G_ref_Area + T_G_ramp_dur  # Total phase encoding gradient ON time length (us)
+    T_G_pre_fe_dur = t_G_ref_Area + (3/2)*T_G_ramp_dur  # Total freq. encoding REWINDER ON time length (us)
+    T_G_fe_dur = 2 * (t_G_ref_Area + T_G_ramp_dur)  # Total Frequency encoding gradient ON time length (us)
 
     ##### RF pulses #####
     ### 90 RF pulse   ###
@@ -66,7 +78,6 @@ def se_2D_v0_RP():
     # sinc pulse
     alpha = 0.46  # alpha=0.46 for Hamming window, alpha=0.5 for Hanning window
     Nlobes = 1
-    Rf_ampl = 0.3  # 0.125*0.57
     # sinc pulse with Hamming window
     # tx90 = Rf_ampl * sinc(math.pi*(t_Rf_90 - T_tx_Rf/2),T_tx_Rf,Nlobes,alpha)
     tx90_clean = Rf_ampl * np.ones(np.size(t_Rf_90))
@@ -87,29 +98,24 @@ def se_2D_v0_RP():
     grad_pe = np.hstack([np.linspace(0, 1, grad_ramp_samp_nr),  # Ramp up
                          np.ones(grad_pe_samp_nr - 2 * grad_ramp_samp_nr),  # Top
                          np.linspace(1, 0, grad_ramp_samp_nr)])  # Ramp down
-    grad_pe = np.hstack([grad_pe, np.zeros(700 - np.size(grad_pe))])
+    grad_pe = np.hstack([grad_pe, np.zeros(500 - np.size(grad_pe))])
 
     # Pre-frequency encoding gradient shape
     grad_pre_fe_samp_nr = math.ceil(T_G_pre_fe_dur / 10)
     grad_pre_fe = np.hstack([np.linspace(0, 1, grad_ramp_samp_nr),  # Ramp up
                              np.ones(grad_pre_fe_samp_nr - 2 * grad_ramp_samp_nr),  # Top
                              np.linspace(1, 0, grad_ramp_samp_nr)])  # Ramp down
-    grad_pre_fe = np.hstack([grad_pre_fe, np.zeros(700 - np.size(grad_pre_fe))])
+    grad_pre_fe = np.hstack([grad_pre_fe, np.zeros(500 - np.size(grad_pre_fe))])
 
     # Frequency encoding gradient shape
     grad_fe_samp_nr = math.ceil(T_G_fe_dur / 10)
     grad_fe = np.hstack([np.linspace(0, 1, grad_ramp_samp_nr),  # Ramp up
                          np.ones(grad_fe_samp_nr - 2 * grad_ramp_samp_nr),  # Top
                          np.linspace(1, 0, grad_ramp_samp_nr)])  # Ramp down
-    grad_fe = np.hstack([grad_fe, np.zeros(1400 - np.size(grad_fe))])
-
-    # Correct for DC offset and scaling
-    scale_G_x = 0.32
-    scale_G_y = 0.32
-    scale_G_z = 0.32
-    offset_G_x = 0.05
-    offset_G_y = 0.05
-    offset_G_z = 0.0
+    sample_nr_center_G_fe = (((1 / (BW / 128)) / 2) * 1e6 + T_G_ramp_dur)/10 # Total phase encoding gradient ON time length (us)
+    grad_fe = np.hstack([np.zeros(np.round(sample_nr_center_G_fe - np.size(grad_fe)/2).astype('int')),
+                         grad_fe,
+                         np.zeros(np.round(1000 - np.size(grad_fe)).astype('int'))])
 
     # Initialisation of the DAC
     exp = Experiment(samples=4,  # number of (I,Q) samples to acquire during a shot of the experiment
@@ -143,9 +149,8 @@ def se_2D_v0_RP():
         grad_z_2_corr = np.zeros(np.size(grad_x_2_corr)) + offset_G_z
 
         # Load gradient waveforms
-        l_tmp = 1345  # Trimming number of zeroes after last gradient to maintain <2000 the nr of gradient samples
         grad_idx = exp.add_grad(grad_x_1_corr, grad_y_1_corr, grad_z_1_corr)
-        grad_idx = exp.add_grad(grad_x_2_corr[0:l_tmp], grad_y_2_corr[0:l_tmp], grad_z_2_corr[0:l_tmp])
+        grad_idx = exp.add_grad(grad_x_2_corr, grad_y_2_corr, grad_z_2_corr)
 
         # Run command to MaRCoS
         data[:, idx2] = exp.run()
@@ -167,9 +172,10 @@ def se_2D_v0_RP():
     plt.title('Total sampled data = %i' % samples_data)
     plt.grid()
 
-    echo_delay = 4600  # us; correction for receiver delay
     echo_shift_idx = np.floor(echo_delay / rx_dt).astype('int')
-    echo_idx = np.floor(T_G_fe_dur / (2 * rx_dt)).astype('int') - np.floor(sample_nr_echo / 2).astype('int')
+    rx_sample_nr_center_G_fe = (((1 / (
+                BW / 128)) / 2) * 1e6 + T_G_ramp_dur) / 50  # Total phase encoding gradient ON time length (us)
+    echo_idx = (rx_sample_nr_center_G_fe - np.floor(sample_nr_echo / 2)).astype('int') # np.floor(T_G_fe_dur / (2 * rx_dt)).astype('int') - np.floor(sample_nr_echo / 2).astype('int')
     kspace = data[echo_idx + echo_shift_idx:echo_idx + echo_shift_idx + sample_nr_echo, :]
 
     plt.subplot(2, 1, 2)
@@ -181,7 +187,7 @@ def se_2D_v0_RP():
     plt.legend(['real', 'abs'])
     plt.xlabel('Sample nr.')
     plt.ylabel('signal received (V)')
-    plt.title('Sampled data for the image = %i' % sample_nr_echo)
+    plt.title('Echo time in acquisition from = %f' % t_rx[echo_idx + echo_shift_idx])
     plt.grid()
 
     plt.figure(2)

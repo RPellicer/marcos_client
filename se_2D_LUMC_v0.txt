@@ -24,29 +24,31 @@ LD64 8, CMD8        						// A[16] Load CMD8 to R[8]
 LD64 9, CMD9        						// A[17] Load CMD9 to R[9]
 LD64 10, CMD10      						// A[18] Load CMD10 to R[10]
 LD64 11, CMD1                               // A[19] Load CMD1 to R[11]
-NOP                                 // A[1A] UNUSED
-NOP                                 // A[1B] UNUSED
-NOP                                 // A[1C] UNUSED
-TXOFFSET 0 							// A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
-GRADOFFSET 0 						// A[1E] GRADOFFSET
-PR 7, 10      // grad-Update offset // A[21]
-PR 11, 20      // Enable&Unblank Tx  // A[1F] unblank for 20 us
-PR 5, 100		// RF 90        	// A[20] PR R[5] (issue CMD5) and unblank for 120 us
-PR 7, 7000   //6650      // grad              // A[21]
-PR 3, 10		// wait				    // A[22] PR R[3] (issue CMD3) and last for 4855 us (5000-145)PR 11, 200
-TXOFFSET 1100 						// A[23] TXOFFSET 0: RF 180x+
-PR 11, 20      // Enable Tx         // A[24]
-PR 5, 100		// RF 180			// A[25] PR R[5] (issue CMD5) and unblank for 180 us
-GRADOFFSET 700						// A[26] GRADOFFSET
-PR 3, 1000      // wait               // A[27]
-PR 3, 1000      // wait               // A[27]
-PR 8, 3395  //13050 // grad&read   // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-TXOFFSET 2200						// A[23] TXOFFSET 0: RF 90x+
-//PR 10, 110	// grad&read	    // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-PR 8, 4110       //4100 // grad&read // A[28] PR R[8] (issue CMD8) and last for 200 ms (50,000 samples)
-PR 4, 5000      //read      	    // A[2A] stop	(TX and grad)
-PR 3, 1000      // wait (TR))       // A[29]
-PR 4, 50000     //read      	    // A[2A] stop	(TX and grad)
-DEC 2 								// A[2B] DEC R[2]
-JNZ 2, 0x1D 						// A[2C] JNZ R[2] => `PC=0x1D
-HALT 								// A[2D] HALT
+NOP                                         // A[1A] UNUSED
+NOP                                         // A[1B] UNUSED
+NOP                                         // A[1C] UNUSED
+TXOFFSET 0 							        // A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
+GRADOFFSET 0 						        // A[1E] GRADOFFSET Phase encoding in parallel to Frequency encoding rewind
+PR 7, 10            // grad-Update offset   // A[1F]
+PR 11, 20           // Unblank Tx           // A[20]
+PR 5, 100	        // RF 90        	    // A[21]
+PR 3, 1000          // wait                 // A[22]
+PR 7, 3800          // grad                 // A[23] Phase encoding in parallel to Frequency encoding rewind
+PR 3, 80	        // wait				    // A[24]
+TXOFFSET 1100 						        // A[25] TXOFFSET 0: RF 180x+
+PR 11, 20           // Unblank Tx           // A[26]
+PR 5, 100	        // RF 180			    // A[27]
+GRADOFFSET 500						        // A[28] GRADOFFSET Frequency encoding
+PR 3, 1000          // wait                 // A[29]
+PR 3, 500           // wait                 // A[2A]
+PR 8, 3400          // grad&read            // A[2B]
+TXOFFSET 2200					        	// A[2C] TXOFFSET 0: RF 180x+
+//PR 10, 100        // grad&read&pulse      // A[2D] NOT to use on actual MRI!! Be careful, this sends a Tx while Rx is ON Echo ref
+PR 8, 100           // grad&read            // A[2D]
+PR 8, 4000          // grad&read            // A[2E]
+PR 4, 5000          // wait & read      	// A[2F]
+PR 3, 1000          // wait                 // A[30]
+PR 4, 50000         // wait & read          // A[31] STOP: fill data buffer to trigger stop
+DEC 2 				// reduce counter 2		// A[32] DEC R[2]
+JNZ 2, 0x1D 		// If cntr 2 not 0	jump// A[33] JNZ R[2] => `PC=0x1D
+HALT 								        // A[34] HALT
