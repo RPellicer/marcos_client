@@ -36,7 +36,7 @@ def sinc(x, tx_time, Nlobes, alpha):
     return y
 
 # Experiment parameters
-freq_larmor = 14.2703 # 14.2658  # 2.147 local oscillator frequency, MHz
+freq_larmor =  14.2703 # 14.2703 # 14.2658  # 2.147 local oscillator frequency, MHz
 sample_nr_echo = 64  # number of (I,Q) USEFUL samples to acquire during a shot
 pe_step_nr = 64  # number of phase encoding steps
 
@@ -59,7 +59,7 @@ offset_G_y = 0 # 0.00013
 offset_G_z = 0.0
 
 # Rf amplitude
-Rf_ampl = 0.111 # 0.05 #0.07125  # for Tom
+Rf_ampl = 0.111 # 0.111 # 0.07125  # for Tom
 
 # Centering the echo
 # echo_delay = 350  # us; correction for receiver delay
@@ -183,7 +183,7 @@ plt.subplot(2, 1, 2)
 # # plt.plot(t_rx, np.imag(data))
 # plt.plot(t_rx[echo_idx+echo_shift_idx:echo_idx+echo_shift_idx+sample_nr_echo], np.abs(kspace))
 # plt.plot(np.real(kspace))
-plt.plot(np.abs(kspace))
+plt.plot(np.arange(echo_idx + echo_shift_idx,echo_idx + echo_shift_idx + sample_nr_echo, 1), np.abs(kspace))
 a = np.arange(echo_idx+echo_shift_idx, echo_idx+echo_shift_idx+sample_nr_echo, 1);
 # plt.plot(a, np.real(kspace))
 # plt.plot(a, np.abs(kspace))
