@@ -1,0 +1,87 @@
+J 10 										// A[0] J to address 10 x 8 bytes A[B]
+LOOP_CTR = 0x1								// A[1] LOOP COUNTER (NO repetitions for now)
+CMD1 = TX_GATE | RX_PULSE             		// A[2] UNUSED
+CMD2 = 0x0                          		// A[3] UNUSED
+CMD3 = 0x2                          				// A[4] all off (note that RX_PULSE use inverted logic)
+CMD4 = 0X0                          				// A[5] only receiver on (all off, but do not reset RX FIFO)
+CMD5 = TX_GATE | TX_PULSE | RX_PULSE    			// A[6] RF
+CMD6 = TX_GATE | TX_PULSE           				// A[7] RF with receiver on
+CMD7 = GRAD_PULSE | RX_PULSE           				// A[8] GRAD
+CMD8 = GRAD_PULSE                   				// A[9] GRAD with receiver on
+CMD9 = TX_GATE | TX_PULSE | RX_PULSE | GRAD_PULSE	// A[A] RF&GRAD
+CMD10 = TX_GATE | TX_PULSE | GRAD_PULSE				// A[B] RF&GRAD with receiver on
+NOP                                         // A[C] UNUSED
+NOP                                         // A[D] UNUSED
+NOP                                         // A[E] UNUSED
+NOP                                         // A[F] UNUSED
+LD64 2, LOOP_CTR    						// A[10] Load LOOP_CTR to R[2]		"J here"
+LD64 3, CMD3        						// A[11] Load CMD3 to R[3]
+LD64 4, CMD4        						// A[12] Load CMD4 to R[4]
+LD64 5, CMD5        						// A[13] Load CMD5 to R[5]
+LD64 6, CMD6        						// A[14] Load CMD6 to R[6]
+LD64 7, CMD7        						// A[15] Load CMD7 to R[7]
+LD64 8, CMD8        						// A[16] Load CMD8 to R[8]
+LD64 9, CMD9        						// A[17] Load CMD9 to R[9]
+LD64 10, CMD10      						// A[18] Load CMD10 to R[10]
+LD64 11, CMD1                               // A[19] Load CMD1 to R[11]
+NOP                                         // A[1A] UNUSED
+NOP                                         // A[1B] UNUSED
+NOP                                         // A[1C] UNUSED
+// Block 1: Rf90x+ + ss
+TXOFFSET 0 							        // A[1D] TXOFFSET 0: RF 90x+				"JNZ here"
+GRADOFFSET 0 						        // A[1E] GRADOFFSET Phase encoding in parallel to Frequency encoding rewind
+//PR 7, 10          // grad-Update offset   // A[1F]
+PR 11, 20           // Unblank Tx           // A[20]
+PR 5, 100	        // RF 90        	    // A[21]
+PR 3, 680          // wait                  // A[22]
+// Block 2: -fe/2 prephase
+PR 7, 2000          // grad                 // A[23] Frequency encoding prephaser
+PR 3, 1050	        // wait				    // A[24]
+PR 3, 0             // wait                 // A[22] *** Adjust here and below to change TE. The TE will be 5 ms plus this value
+// Block 3: Rf180y+ + ss (echo 1)
+TXOFFSET 2000 						        // A[25] TXOFFSET 0: RF 180y+
+PR 11, 20           // Unblank Tx           // A[26]
+PR 5, 100	        // RF 180			    // A[27]
+PR 3, 0             // wait                 // A[22] *** Adjust here to change TE.
+// Block 4: pe+ (echo 1)
+GRADOFFSET 200						        // A[28] GRADOFFSET Phase encoding +
+PR 7, 1900          // grad                 //
+PR 3, 50             // wait
+//Block 5: fe (echo 1)
+GRADOFFSET 390						        // A[28] GRADOFFSET Frequency encoding
+PR 8, 3800          // grad&read    // A[2B]
+//Block 6: pe- (echo 1)
+GRADOFFSET 770						        // A[28] GRADOFFSET Frequency encoding
+PR 8, 1880          // grad&read            // A[2B]
+PR 3, 0             // wait                 // A[22] *** Adjust here to change TE.
+// Block 3: Rf180y- + ss (echo 2)
+TXOFFSET 3000 						        // A[25] TXOFFSET 0: RF 180y-
+PR 11, 20           // Unblank Tx           // A[26]
+PR 5, 100	        // RF 180			    // A[27]
+PR 3, 0             // wait                 // A[22] *** Adjust here to change TE.
+// Block 4: pe+ (echo 2)
+GRADOFFSET 960						        // A[28] GRADOFFSET Phase encoding +
+PR 7, 1900          // grad                 //
+PR 3, 50            // wait                 //
+//Block 5: fe (echo 2)
+GRADOFFSET 1150						        // A[28] GRADOFFSET Frequency encoding
+PR 8, 3800          // grad&read    // A[2B]
+//Block 6: pe- (echo 2)
+GRADOFFSET 1530						        // A[28] GRADOFFSET Frequency encoding
+PR 8, 1880          // grad&read            // A[2B]
+PR 3, 0             // wait                 // A[22] *** Adjust here to change TR.
+PR 4, 50000         // wait & read          // A[31] STOP: fill data buffer to trigger stop
+DEC 2 				// reduce counter 2		// A[32] DEC R[2]
+JNZ 2, 0x1D 		// If cntr 2 not 0	jump// A[33] JNZ R[2] => `PC=0x1D
+HALT 								        // A[34] HALT
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//    # Echo nr                  |               1               |               2               |
+//    # Block    |    1   |   2  |  3  |   4   |   5     |   6   |  7  |   8   |    9    |  10   |
+//    # Mem      |    0   |   2  |  3  |   4   |   5     |   6   |  7  |   8   |    9    |  10   |
+//    # RF       |_$$_____|______|_$$__|_______|_________|_______|_$$__|_______|_________|_______|_$$_
+//    #          |        |      |     |       |         |       |     |       |         |       |
+//    # Gss      |/--\   _|______|/--\_|_______|_________|_______|/--\_|_______|_________|_______|/--\
+//    #          |    \_/ |      |     |       |         |       |     |       |         |       |
+//    # Gpe      |________|______|_____|/1111\_|_________|      _|_____|/2222\_|_________|      _|____
+//    #          |        |      |     |       |         |\1111/ |     |       |         |\2222/ |
+//    # Gfe      |________|/---\_|_____|_______|/------\_|_______|_____|_______|/------\_|_______|____
