@@ -36,9 +36,9 @@ def sinc(x, tx_time, Nlobes, alpha):
     return y
 
 # Experiment parameters
-freq_larmor = 14.2703 # 14.2658  # 2.147 local oscillator frequency, MHz
+freq_larmor = 14.2703 # 14.2703 # 14.2658  # 2.147 local oscillator frequency, MHz
 sample_nr_echo = 64  # number of (I,Q) USEFUL samples to acquire during a shot
-pe_step_nr = 64  # number of phase encoding steps
+pe_step_nr = 2  # number of phase encoding steps
 
 tx_dt = 0.1  # RF TX sampling dt in microseconds; is rounded to a multiple of clocks (122.88 MHz)
 rx_dt = 20  # RF RX sampling dt
@@ -59,7 +59,7 @@ offset_G_y = 0 # 0.00013
 offset_G_z = 0.0
 
 # Rf amplitude
-Rf_ampl = 0.046 # 0.05 #0.07125  # for Tom
+Rf_ampl = 0.06# 0.046 # 0.05 #0.07125  # for Tom
 
 # Centering the echo
 # echo_delay = 350  # us; correction for receiver delay
@@ -165,9 +165,9 @@ plt.figure(1)
 plt.subplot(2,1,1)
 # plt.plot(t_rx, np.real(data))
 # plt.plot(t_rx, np.abs(data))
-plt.plot(np.real(data))
+# plt.plot(np.real(data))
 plt.plot(np.abs(data))
-plt.legend(['real', 'abs'])
+plt.legend(['1', '2'])
 plt.xlabel('time (us)')
 plt.ylabel('signal received (V)')
 plt.title('Total sampled data = %i' % samples_data)
@@ -182,12 +182,12 @@ plt.subplot(2, 1, 2)
 # plt.plot(t_rx[echo_idx+echo_shift_idx:echo_idx+echo_shift_idx+sample_nr_echo], np.real(kspace))
 # # plt.plot(t_rx, np.imag(data))
 # plt.plot(t_rx[echo_idx+echo_shift_idx:echo_idx+echo_shift_idx+sample_nr_echo], np.abs(kspace))
-plt.plot(np.real(kspace))
+# plt.plot(np.real(kspace))
 plt.plot(np.abs(kspace))
 a = np.arange(echo_idx+echo_shift_idx, echo_idx+echo_shift_idx+sample_nr_echo, 1);
 # plt.plot(a, np.real(kspace))
 # plt.plot(a, np.abs(kspace))
-plt.legend(['real', 'abs'])
+plt.legend(['1', '2'])
 plt.xlabel('Sample nr.')
 plt.ylabel('signal received (V)')
 plt.title('Echo time in acquisition from = %f' % t_rx[echo_idx + echo_shift_idx])

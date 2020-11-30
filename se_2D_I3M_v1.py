@@ -51,15 +51,15 @@ T_G_ramp_dur = 30  # Gradient ramp time
 sample_nr_2_STOP_Seq = 256 + 1000  # Nr. of samples to acquire TO STOP the acquisition
 
 # Correct for DC offset and scaling
-scale_G_x = 0.0025 # 0.0015# 0.032
-scale_G_y = 0.001 # 0.0005
+scale_G_x = 0.0011 # 0.0015# 0.032
+scale_G_y = 0.0011 # 0.0005
 scale_G_z = 0.0
 offset_G_x = 0 # 0.0015
 offset_G_y = 0 # 0.00013
 offset_G_z = 0.0
 
 # Rf amplitude
-Rf_ampl = 0.046 # 0.05 #0.07125  # for Tom
+Rf_ampl = 0.111 # 0.05 #0.07125  # for Tom
 
 # Centering the echo
 # echo_delay = 350  # us; correction for receiver delay
@@ -165,9 +165,9 @@ plt.figure(1)
 plt.subplot(2,1,1)
 # plt.plot(t_rx, np.real(data))
 # plt.plot(t_rx, np.abs(data))
-plt.plot(np.real(data))
+# plt.plot(np.real(data))
 plt.plot(np.abs(data))
-plt.legend(['real', 'abs'])
+plt.legend(['1', '2'])
 plt.xlabel('time (us)')
 plt.ylabel('signal received (V)')
 plt.title('Total sampled data = %i' % samples_data)
@@ -182,12 +182,12 @@ plt.subplot(2, 1, 2)
 # plt.plot(t_rx[echo_idx+echo_shift_idx:echo_idx+echo_shift_idx+sample_nr_echo], np.real(kspace))
 # # plt.plot(t_rx, np.imag(data))
 # plt.plot(t_rx[echo_idx+echo_shift_idx:echo_idx+echo_shift_idx+sample_nr_echo], np.abs(kspace))
-plt.plot(np.real(kspace))
+# plt.plot(np.real(kspace))
 plt.plot(np.abs(kspace))
 a = np.arange(echo_idx+echo_shift_idx, echo_idx+echo_shift_idx+sample_nr_echo, 1);
 # plt.plot(a, np.real(kspace))
 # plt.plot(a, np.abs(kspace))
-plt.legend(['real', 'abs'])
+plt.legend(['1', '2'])
 plt.xlabel('Sample nr.')
 plt.ylabel('signal received (V)')
 plt.title('Echo time in acquisition from = %f' % t_rx[echo_idx + echo_shift_idx])
